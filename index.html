@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>曹太金 · 个人作品展示主页</title>
+    <meta name="description" content="曹太金的个人作品展示主页：平面版式、三维建模、网页前端与交互作品。">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23faf7f2'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%23b33a2b'/%3E%3C/svg%3E">
+
+    <style>
+        /* ============================================================
+           视觉方向：编辑排版风（Editorial）
+           暖白底 + 近黑字 + 单一赭红点缀；衬线标题、细线分区、克制用色。
+           下面先定义设计令牌（颜色/字号/间距/圆角/阴影/动效），
+           组件样式只引用变量，不直接写裸色值和随手数字。
+           ============================================================ */
+        :root{
+            /* 颜色：语义层 */
+            --bg:#faf7f2;              /* 页面底色 */
+            --surface:#fffdf9;         /* 卡片、表单底色 */
+            --surface-2:#f3ece1;       /* 次级底色（hover） */
+            --ink:#1a1713;             /* 主文字 / 近黑 */
+            --ink-2:#3d3730;           /* 正文 */
+            --muted:#6f655a;           /* 次要文字（对比度 ≥ 4.5:1） */
+            --line:#e4dacb;            /* 细线 */
+            --line-strong:#cbbda9;     /* 强边框 */
+            --accent:#b33a2b;          /* 唯一强调色：赭红 */
+            --accent-dark:#93291d;
+            --accent-soft:rgba(179,58,43,.18);
+
+            /* 字体：衬线标题 + 无衬线正文 */
+            --font-serif:"Noto Serif SC","Source Han Serif SC","Songti SC",SimSun,Georgia,serif;
+            --font-sans:"Noto Sans SC","PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+
+            /* 字号阶梯 */
+            --text-xs:.75rem;
+            --text-sm:.875rem;
+            --text-base:.9375rem;
+            --text-lg:1.125rem;
+            --text-2xl:clamp(1.5rem,2.6vw,2rem);
+            --display:clamp(2.4rem,6vw,4rem);
+
+            /* 间距：4px 基准 */
+            --space-1:4px;
+            --space-2:8px;
+            --space-3:12px;
+            --space-4:16px;
+            --space-5:24px;
+            --space-6:32px;
+            --space-7:48px;
+
+            /* 圆角与阴影 */
+            --radius:4px;
+            --radius-lg:10px;
+            --radius-full:999px;
+            --shadow-sm:0 1px 2px rgba(26,23,19,.05);
+            --shadow:0 2px 4px rgba(26,23,19,.06),0 16px 32px -18px rgba(26,23,19,.28);
+
+            /* 动效 */
+            --ease-out:cubic-bezier(.22,.61,.36,1);
+            --dur-fast:180ms;
+            --dur:260ms;
+            --dur-slow:320ms;
+
+            /* 布局 */
+            --container:1180px;
+            --gutter:clamp(16px,4vw,40px);
+            --section-y:clamp(48px,7vw,88px);
+            --header-h:72px;
+        }
+
+        /* ---------------- 基础重置 ---------------- */
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+        html{
+            scroll-behavior:smooth;      /* 锚点跳转平滑滚动 */
+        }
+        body{
+            font-family:var(--font-sans);
+            font-size:var(--text-base);
+            line-height:1.7;
+            color:var(--ink-2);
+            background-color:var(--bg);
+            -webkit-font-smoothing:antialiased;
+        }
+        img{
+            display:block;
+            max-width:100%;
+        }
+        a{
+            color:inherit;
+        }
+        ul{
+            list-style:none;
+        }
+        ::selection{
+            background:var(--accent);
+            color:#fff;
+        }
+        /* 键盘焦点环：所有可交互元素统一 */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible{
+            outline:2px solid var(--accent);
+            outline-offset:3px;
+        }
+        /* 屏幕阅读器专用文字 */
+        .sr-only{
+            position:absolute;
+            width:1px;
+            height:1px;
+            overflow:hidden;
+            clip:rect(0 0 0 0);
+            white-space:nowrap;
+        }
+        /* 跳转链接：Tab 第一下出现 */
+        .skip-link{
+            position:absolute;
+            left:50%;
+            top:-64px;
+            transform:translateX(-50%);
+            z-index:500;
+            padding:10px 20px;
+            background:var(--ink);
+            color:var(--bg);
+            border-radius:var(--radius);
+            text-decoration:none;
+            font-size:var(--text-sm);
+            transition:top var(--dur-fast) var(--ease-out);
+        }
+        .skip-link:focus{
+            top:12px;
+        }
+
+        /* ---------------- 通用容器 ---------------- */
+        .container{
+            width:min(100% - 2 * var(--gutter), var(--container));
+            margin-inline:auto;
+        }
+
+        /* ============================================================
+           一、页面头部与导航（header + nav）
+           Flex 实现「品牌名靠左、菜单靠右」
+           ============================================================ */
+        .site-header{
+            position:sticky;
+            top:0;
+            z-index:200;
+            background:rgba(250,247,242,.94);
+            -webkit-backdrop-filter:blur(10px);
+            backdrop-filter:blur(10px);
+            border-bottom:1px solid var(--line);
+        }
+        .header-inner{
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            gap:var(--space-4);
+            min-height:var(--header-h);
+            padding-block:var(--space-2);
+        }
+        .brand{
+            display:inline-flex;
+            align-items:baseline;
+            gap:var(--space-2);
+            font-family:var(--font-serif);
+            font-size:var(--text-lg);
+            font-weight:600;
+            letter-spacing:.02em;
+            color:var(--ink);
+            text-decoration:none;
+        }
+        .brand small{
+            font-family:var(--font-sans);
+            font-size:var(--text-xs);
+            font-weight:400;
+            letter-spacing:.16em;
+            color:var(--muted);
+        }
+        .nav-list{
+            display:flex;
+            flex-wrap:wrap;
+            gap:var(--space-1);
+        }
+        .nav-item{
+            display:inline-block;
+            padding:10px 18px;
+            border-radius:var(--radius);
+            font-size:var(--text-base);
+            text-decoration:none;
+            color:var(--ink-2);
+            transition:background-color var(--dur-fast) var(--ease-out),
+                       color var(--dur-fast) var(--ease-out);
+        }
+        .nav-item:hover{
+            background:var(--surface-2);
+        }
+        /* 由 JS 添加 / 移除的高亮类（鼠标移入高亮，移出取消） */
+        .nav-item.active{
+            background:var(--accent);
+            color:#fff;
+        }
+
+        /* ============================================================
+           二、个人简介（section：头像 + 姓名 + 一句话简介）
+           ============================================================ */
+        .hero{
+            padding-block:clamp(40px,6vw,80px);
+            border-bottom:1px solid var(--line);
+        }
+        .hero-inner{
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:clamp(28px,5vw,64px);
+        }
+        .portrait{
+            flex:0 0 auto;
+            text-align:center;
+        }
+        .portrait img{
+            width:clamp(150px,18vw,196px);
+            height:clamp(150px,18vw,196px);
+            border-radius:50%;
+            object-fit:cover;
+            padding:10px;
+            background:var(--surface);
+            border:1px solid var(--line-strong);
+            box-shadow:var(--shadow-sm);
+        }
+        .portrait figcaption{
+            margin-top:var(--space-4);
+            font-size:var(--text-xs);
+            letter-spacing:.14em;
+            color:var(--muted);
+        }
+        .hero-text{
+            flex:1 1 420px;
+            min-width:0;
+        }
+        .eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:var(--space-2);
+            font-size:var(--text-xs);
+            letter-spacing:.18em;
+            color:var(--accent);
+        }
+        .eyebrow::before{
+            content:"";
+            width:28px;
+            height:1px;
+            background:var(--accent);
+        }
+        .hero-text h1{
+            margin:var(--space-3) 0 var(--space-4);
+            font-family:var(--font-serif);
+            font-size:var(--display);
+            font-weight:600;
+            line-height:1.1;
+            letter-spacing:-.02em;
+            color:var(--ink);
+        }
+        .lede{
+            max-width:34em;
+            font-size:clamp(1rem,1.3vw,1.125rem);
+            color:var(--ink-2);
+        }
+        .tag-row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:var(--space-2);
+            margin-top:var(--space-5);
+        }
+        .tag{
+            padding:4px 12px;
+            border:1px solid var(--line-strong);
+            border-radius:var(--radius-full);
+            background:var(--surface);
+            font-size:var(--text-xs);
+            letter-spacing:.04em;
+            color:var(--muted);
+        }
+        .hero-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:var(--space-3);
+            margin-top:var(--space-6);
+        }
+        /* 按钮：默认 / hover / active / focus-visible 四个状态 */
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:var(--space-2);
+            min-height:44px;
+            padding:0 24px;
+            border:1px solid transparent;
+            border-radius:var(--radius);
+            font-family:inherit;
+            font-size:var(--text-base);
+            text-decoration:none;
+            cursor:pointer;
+            transition:background-color var(--dur-fast) var(--ease-out),
+                       color var(--dur-fast) var(--ease-out),
+                       border-color var(--dur-fast) var(--ease-out),
+                       transform var(--dur-fast) var(--ease-out);
+        }
+        .btn-primary{
+            background:var(--accent);
+            color:#fff;
+        }
+        .btn-primary:hover{
+            background:var(--accent-dark);
+        }
+        .btn-ghost{
+            border-color:var(--line-strong);
+            background:transparent;
+            color:var(--ink);
+        }
+        .btn-ghost:hover{
+            border-color:var(--accent);
+            color:var(--accent);
+        }
+        .btn:active{
+            transform:translateY(1px);
+        }
+
+        /* ============================================================
+           三、主体内容区（main）
+           每个区块用细线 + 统一的垂直节奏分区
+           ============================================================ */
+        .section{
+            padding-block:var(--section-y);
+            border-bottom:1px solid var(--line);
+            scroll-margin-top:calc(var(--header-h) + var(--space-4)); /* 锚点不被固定头部遮挡 */
+        }
+        .section:last-of-type{
+            border-bottom:0;
+        }
+        .section-head{
+            display:flex;
+            align-items:center;
+            gap:var(--space-5);
+            margin-bottom:var(--space-6);
+        }
+        .section-head .index{
+            font-size:var(--text-xs);
+            letter-spacing:.1em;
+            color:var(--accent);
+            font-variant-numeric:tabular-nums;
+        }
+        .section-head h2{
+            font-family:var(--font-serif);
+            font-size:var(--text-2xl);
+            font-weight:600;
+            letter-spacing:-.01em;
+            color:var(--ink);
+            white-space:nowrap;
+        }
+        .section-head .line{
+            flex:1;
+            height:1px;
+            background:var(--line);
+        }
+
+        /* ---------- 3.1 关于我 ---------- */
+        .about-grid{
+            display:flex;
+            flex-wrap:wrap;
+            gap:clamp(24px,4vw,56px);
+        }
+        .about-text{
+            flex:1 1 420px;
+            min-width:0;
+            max-width:62ch;
+        }
+        .about-text h3{
+            margin:var(--space-6) 0 var(--space-2);
+            font-family:var(--font-serif);
+            font-size:var(--text-lg);
+            color:var(--ink);
+        }
+        .about-text h3:first-child{
+            margin-top:0;
+        }
+        .about-text p + p{
+            margin-top:var(--space-3);
+        }
+        .facts{
+            flex:0 1 320px;
+            padding:var(--space-5);
+            border:1px solid var(--line);
+            border-radius:var(--radius-lg);
+            background:var(--surface);
+            box-shadow:var(--shadow-sm);
+        }
+        .facts dt{
+            font-size:var(--text-xs);
+            letter-spacing:.1em;
+            color:var(--muted);
+        }
+        .facts dd{
+            margin:2px 0 var(--space-4);
+            font-size:var(--text-base);
+            color:var(--ink);
+        }
+        .facts dd:last-child{
+            margin-bottom:0;
+        }
+
+        /* ---------- 3.2 作品展示：Flex 多行多列卡片 ---------- */
+        .works-flex{
+            display:flex;
+            flex-wrap:wrap;
+            gap:var(--space-5);
+        }
+        .work-card{
+            flex:1 1 300px;              /* 每张卡片基准 300px，空间不足自动换行 */
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+            background:var(--surface);
+            border:1px solid var(--line);
+            border-radius:var(--radius-lg);
+            box-shadow:var(--shadow-sm);
+            /* 悬浮放大靠 transform，配合 shadow 过渡，不改变布局 */
+            transition:transform var(--dur-slow) var(--ease-out),
+                       box-shadow var(--dur-slow) var(--ease-out),
+                       border-color var(--dur-slow) var(--ease-out);
+        }
+        .work-card:hover,
+        .work-card:focus-within{
+            transform:scale(1.03);
+            box-shadow:var(--shadow);
+            border-color:var(--line-strong);
+        }
+        .work-card figure{
+            margin:0;
+            overflow:hidden;
+            background:var(--surface-2);
+        }
+        .work-card img{
+            width:100%;
+            height:auto;               /* 覆盖 width/height 属性带来的固定高度 */
+            aspect-ratio:4 / 3;        /* 统一卡片配图比例，避免高度参差 */
+            object-fit:cover;
+        }
+        .work-body{
+            display:flex;
+            flex-direction:column;
+            flex:1;
+            gap:var(--space-2);
+            padding:var(--space-4) var(--space-5) var(--space-5);
+        }
+        .work-meta{
+            display:flex;
+            justify-content:space-between;
+            gap:var(--space-3);
+            font-size:var(--text-xs);
+            letter-spacing:.08em;
+            color:var(--muted);
+            font-variant-numeric:tabular-nums;
+        }
+        .work-meta em{
+            font-style:normal;
+            color:var(--accent);
+        }
+        .work-card h3{
+            font-family:var(--font-serif);
+            font-size:var(--text-lg);
+            font-weight:600;
+            letter-spacing:-.01em;
+            color:var(--ink);
+        }
+        .work-card p{
+            font-size:var(--text-sm);
+            line-height:1.65;
+            color:var(--ink-2);
+        }
+
+        /* ---------- 3.3 留言表单 ---------- */
+        .contact-grid{
+            display:flex;
+            flex-wrap:wrap;
+            gap:clamp(24px,4vw,64px);
+            align-items:flex-start;
+        }
+        .contact-note{
+            flex:1 1 280px;
+            max-width:38ch;
+        }
+        .contact-note p + p{
+            margin-top:var(--space-3);
+        }
+        .contact-note .quote{
+            margin-top:var(--space-5);
+            padding-left:var(--space-4);
+            border-left:2px solid var(--accent);
+            color:var(--muted);
+            font-size:var(--text-sm);
+        }
+        .msg-form{
+            flex:1 1 420px;
+            min-width:0;
+            padding:clamp(20px,3vw,32px);
+            border:1px solid var(--line);
+            border-radius:var(--radius-lg);
+            background:var(--surface);
+            box-shadow:var(--shadow-sm);
+        }
+        .field{
+            display:grid;
+            gap:var(--space-2);
+            margin-bottom:var(--space-4);
+        }
+        .field label{
+            font-size:var(--text-sm);
+            font-weight:500;
+            color:var(--ink);
+        }
+        .field .required{
+            margin-left:var(--space-1);
+            color:var(--accent);
+        }
+        .field input,
+        .field textarea{
+            width:100%;
+            min-height:44px;
+            padding:10px 12px;
+            font-family:inherit;
+            font-size:var(--text-base);
+            line-height:1.6;
+            color:var(--ink);
+            background:var(--bg);
+            border:1px solid var(--line-strong);
+            border-radius:var(--radius);
+            transition:border-color var(--dur-fast) var(--ease-out),
+                       box-shadow var(--dur-fast) var(--ease-out),
+                       background-color var(--dur-fast) var(--ease-out);
+        }
+        .field textarea{
+            min-height:132px;
+            resize:vertical;
+        }
+        .field input::placeholder,
+        .field textarea::placeholder{
+            color:#9a8f81;
+        }
+        .field input:focus,
+        .field textarea:focus{
+            outline:none;
+            border-color:var(--accent);
+            background:var(--surface);
+            box-shadow:0 0 0 3px var(--accent-soft);
+        }
+        /* 校验失败态：边框变色 + 字段下方文字说明（不只靠颜色） */
+        .field input.is-invalid,
+        .field textarea.is-invalid{
+            border-color:var(--accent);
+            background:#fdf4f2;
+        }
+        .field-error{
+            display:none;
+            font-size:var(--text-xs);
+            color:var(--accent);
+        }
+        .field-error.is-shown{
+            display:block;
+        }
+        .form-footer{
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            gap:var(--space-3);
+            margin-top:var(--space-2);
+        }
+        .form-hint{
+            font-size:var(--text-xs);
+            color:var(--muted);
+        }
+        .msg-form button[type="submit"]{
+            border:none;
+        }
+
+        /* ---------- 3.4 页脚 ---------- */
+        .site-footer{
+            padding-block:var(--space-7) var(--space-6);
+            background:var(--ink);
+            color:#ded3c4;
+        }
+        .footer-inner{
+            display:flex;
+            flex-wrap:wrap;
+            gap:var(--space-6);
+            justify-content:space-between;
+            align-items:flex-start;
+        }
+        .footer-brand h2{
+            font-family:var(--font-serif);
+            font-size:var(--text-lg);
+            font-weight:600;
+            letter-spacing:.02em;
+            color:#f6efe4;
+        }
+        .footer-brand p{
+            margin-top:var(--space-2);
+            max-width:30em;
+            font-size:var(--text-sm);
+            color:#a99c8c;
+        }
+        .footer-contact{
+            font-style:normal;
+            font-size:var(--text-sm);
+            line-height:2;
+        }
+        .footer-contact a{
+            color:#ded3c4;
+            text-decoration:none;
+            border-bottom:1px solid rgba(222,211,196,.32);
+            transition:color var(--dur-fast) var(--ease-out),
+                       border-color var(--dur-fast) var(--ease-out);
+        }
+        .footer-contact a:hover{
+            color:#fff;
+            border-color:var(--accent);
+        }
+        .footer-contact .label{
+            display:inline-block;
+            min-width:4.5em;
+            color:#8d8173;
+        }
+        .footer-bottom{
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:space-between;
+            gap:var(--space-2);
+            margin-top:var(--space-6);
+            padding-top:var(--space-4);
+            border-top:1px solid rgba(222,211,196,.16);
+            font-size:var(--text-xs);
+            color:#a99c8c;
+        }
+
+        /* ---------- 3.5 返回顶部按钮（固定定位，JS 控制显隐） ---------- */
+        #backToTop{
+            position:fixed;
+            right:var(--space-5);
+            bottom:var(--space-5);
+            z-index:300;
+            display:grid;
+            place-items:center;
+            width:48px;
+            height:48px;
+            border:none;
+            border-radius:50%;
+            background:var(--accent);
+            color:#fff;
+            cursor:pointer;
+            box-shadow:var(--shadow);
+            opacity:0;
+            visibility:hidden;
+            transform:translateY(10px);
+            transition:opacity var(--dur) var(--ease-out),
+                       transform var(--dur) var(--ease-out),
+                       visibility var(--dur) var(--ease-out),
+                       background-color var(--dur-fast) var(--ease-out);
+        }
+        /* 滚动超过 200px 后由 JS 加上这个类，按钮淡入 */
+        #backToTop.is-visible{
+            opacity:1;
+            visibility:visible;
+            transform:translateY(0);
+        }
+        #backToTop:hover{
+            background:var(--accent-dark);
+        }
+        #backToTop:active{
+            transform:translateY(1px);
+        }
+
+        /* ============================================================
+           四、响应式：移动优先之外的两档收窄
+           1024px 以下卡片两列，720px 以下全部单列
+           ============================================================ */
+        @media (max-width:1024px){
+            .work-card{
+                flex-basis:calc(50% - var(--space-5) / 2);
+            }
+        }
+        @media (max-width:720px){
+            .header-inner{
+                justify-content:center;
+                text-align:center;
+            }
+            .nav-list{
+                justify-content:center;
+            }
+            .nav-item{
+                padding:10px 14px;
+            }
+            .hero-inner{
+                justify-content:center;
+                text-align:center;
+            }
+            .hero-text{
+                flex-basis:100%;
+            }
+            .eyebrow,
+            .tag-row,
+            .hero-actions{
+                justify-content:center;
+            }
+            .lede{
+                margin-inline:auto;
+            }
+            .work-card{
+                flex-basis:100%;
+            }
+            .section-head{
+                gap:var(--space-3);
+            }
+            .section-head h2{
+                white-space:normal;
+            }
+            .facts{
+                flex-basis:100%;
+            }
+        }
+
+        /* 尊重「减少动态效果」的系统设置 */
+        @media (prefers-reduced-motion:reduce){
+            html{
+                scroll-behavior:auto;
+            }
+            *,
+            *::before,
+            *::after{
+                animation-duration:.01ms !important;
+                transition-duration:.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 键盘用户：第一个 Tab 出现的跳转链接 -->
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <!-- ============================================================
+         页面头部：header 内含 h1 与 nav 导航栏
+         ============================================================ -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="#home">
+                曹太金 <small>作品集</small>
+            </a>
+
+            <!-- 主导航：四项菜单，鼠标移入时由 JS 切换 active 类实现高亮 -->
+            <nav class="site-nav" aria-label="主导航">
+                <ul class="nav-list">
+                    <li><a class="nav-item" href="#home">首页</a></li>
+                    <li><a class="nav-item" href="#about">关于我</a></li>
+                    <li><a class="nav-item" href="#works">作品展示</a></li>
+                    <li><a class="nav-item" href="#contact">留言联系</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main">
+
+        <!-- ========================================================
+             个人简介：section + 头像 img + 姓名 + 一句话简介
+             ======================================================== -->
+        <section class="hero" id="home">
+            <div class="container hero-inner">
+                <figure class="portrait">
+                    <img src="images/avatar.jpg" alt="曹太金的头像" width="196" height="196">
+                    <figcaption>数字媒体技术</figcaption>
+                </figure>
+
+                <div class="hero-text">
+                    <p class="eyebrow">个人作品展示主页</p>
+                    <h1>曹太金</h1>
+                    <p class="lede">
+                        我是曹太金，数字媒体技术专业的学生。喜欢用版式、色彩和一点代码，
+                        把脑子里的想法做成看得见、点得动的东西。
+                    </p>
+
+                    <div class="tag-row">
+                        <span class="tag">版式设计</span>
+                        <span class="tag">三维建模</span>
+                        <span class="tag">Web 前端</span>
+                        <span class="tag">交互原型</span>
+                    </div>
+
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="#works">看看作品</a>
+                        <a class="btn btn-ghost" href="#contact">给我留言</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             关于我：学习方向、兴趣爱好
+             ======================================================== -->
+        <section class="section" id="about">
+            <div class="container">
+                <div class="section-head">
+                    <span class="index">01</span>
+                    <h2>关于我</h2>
+                    <span class="line"></span>
+                </div>
+
+                <div class="about-grid">
+                    <div class="about-text">
+                        <h3>学习方向</h3>
+                        <p>
+                            主修数字媒体技术，一半时间在画面里，一半时间在代码里。
+                            平面方向练版式与配色，三维方向用 3ds Max 做建模与渲染；
+                            前端方向从 HTML5 语义化标签、CSS 选择器与 Flex 布局一路写到 JavaScript 交互。
+                        </p>
+                        <p>
+                            这个学期把课上学的知识串起来做过几个小项目：咖啡店的三折页、
+                            学院官网的首页仿写、Unity 里的湖景小船。作品不复杂，但每一步都是自己动手做的。
+                        </p>
+
+                        <h3>兴趣爱好</h3>
+                        <p>
+                            摄影（喜欢拍城市里被光照亮的招牌字）、手冲咖啡、晚上跑步。
+                            做设计时习惯先在草稿本上画三版布局，再挑一版进电脑 ——
+                            这次的主页也是这样定下结构的。
+                        </p>
+
+                        <h3>这门课最大的收获</h3>
+                        <p>
+                            先写对结构，再谈好看。语义化标签让页面「能被读懂」，
+                            Flex 让排版不再靠 float 硬撑，JavaScript 让页面真的能回应操作。
+                        </p>
+                    </div>
+
+                    <!-- 用 dl 描述专业、学号、方向等信息 -->
+                    <dl class="facts">
+                        <dt>专业</dt>
+                        <dd>数字媒体技术</dd>
+                        <dt>学号</dt>
+                        <dd>260956030111</dd>
+                        <dt>方向</dt>
+                        <dd>视觉设计 / Web 前端</dd>
+                        <dt>常用工具</dt>
+                        <dd>Photoshop、3ds Max、Unity、VS Code</dd>
+                        <dt>这个页面</dt>
+                        <dd>HTML5 + CSS3 + 原生 JavaScript</dd>
+                    </dl>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             作品展示：Flex 多行多列卡片（6 张），每张含图片、标题、描述
+             ======================================================== -->
+        <section class="section" id="works">
+            <div class="container">
+                <div class="section-head">
+                    <span class="index">02</span>
+                    <h2>作品展示</h2>
+                    <span class="line"></span>
+                </div>
+
+                <!-- Flex 容器：卡片宽度按 300px 基准自动换行，形成多行多列 -->
+                <div class="works-flex">
+
+                    <article class="work-card">
+                        <figure>
+                            <img src="images/work1.jpg" alt="咖啡店三折页宣传单设计" width="1200" height="900" loading="lazy">
+                        </figure>
+                        <div class="work-body">
+                            <p class="work-meta"><span>平面 · 版式</span><em>2026</em></p>
+                            <h3>咖啡店三折页</h3>
+                            <p>深棕底配木质台面：封面用咖啡豆和拉花做质感，内页把冷热咖啡的价目排进同一套网格。</p>
+                        </div>
+                    </article>
+
+                    <article class="work-card">
+                        <figure>
+                            <img src="images/work2.jpg" alt="国画风格海报合成《莲碧有鱼》" width="1200" height="900" loading="lazy">
+                        </figure>
+                        <div class="work-body">
+                            <p class="work-meta"><span>合成 · 海报</span><em>2026</em></p>
+                            <h3>《莲碧有鱼》海报</h3>
+                            <p>工笔荷花、锦鲤和鸳鸯拼成一幅长卷：统一色温、压暗四周，给中间的题字留出位置。</p>
+                        </div>
+                    </article>
+
+                    <article class="work-card">
+                        <figure>
+                            <img src="images/work3.jpg" alt="蓝色渐变风格的用户登录界面设计" width="1200" height="900" loading="lazy">
+                        </figure>
+                        <div class="work-body">
+                            <p class="work-meta"><span>UI · 界面设计</span><em>2026</em></p>
+                            <h3>用户登录界面</h3>
+                            <p>蓝色渐变底加半透明描边面板；账号密码用图标代替文字标签，主按钮压在面板右下角。</p>
+                        </div>
+                    </article>
+
+                    <article class="work-card">
+                        <figure>
+                            <img src="images/work4.jpg" alt="Unity 3D 湖光山色小船漫游场景" width="1200" height="900" loading="lazy">
+                        </figure>
+                        <div class="work-body">
+                            <p class="work-meta"><span>交互 · Unity</span><em>2026</em></p>
+                            <h3>湖光山色 · 小船漫游</h3>
+                            <p>Unity 3D 场景：WASD 控制帆船在湖面行驶，带浮动动画与活动半径限制，可切换昼夜与三种镜头。</p>
+                        </div>
+                    </article>
+
+                    <article class="work-card">
+                        <figure>
+                            <img src="images/work5.jpg" alt="山东女子学院官网首页 HTML 仿写效果" width="1200" height="900" loading="lazy">
+                        </figure>
+                        <div class="work-body">
+                            <p class="work-meta"><span>前端 · HTML/CSS</span><em>2026</em></p>
+                            <h3>学院官网首页仿写</h3>
+                            <p>按官网截图复刻：标题、导航、横幅、要闻列表、新闻排行、通知表格，只用了 HTML 标签和基础样式。</p>
+                        </div>
+                    </article>
+
+                    <article class="work-card">
+                        <figure>
+                            <img src="images/work6.jpg" alt="校园里的树与环形长椅摄影" width="1200" height="900" loading="lazy">
+                        </figure>
+                        <div class="work-body">
+                            <p class="work-meta"><span>摄影 · 随手拍</span><em>2026</em></p>
+                            <h3>校园里的树与长椅</h3>
+                            <p>秋天的校园：环形长椅绕着老槐树，落叶和石板路把人往画面深处带。手机直出，只调了亮度。</p>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             留言表单：姓名、邮箱、留言、提交（JS 做非空验证）
+             ======================================================== -->
+        <section class="section" id="contact">
+            <div class="container">
+                <div class="section-head">
+                    <span class="index">03</span>
+                    <h2>留言联系</h2>
+                    <span class="line"></span>
+                </div>
+
+                <div class="contact-grid">
+                    <div class="contact-note">
+                        <p>
+                            如果你对我的作品有想法，或者想一起做点什么，
+                            留下姓名和邮箱，我会尽快回复你。
+                        </p>
+                        <p class="quote">
+                            姓名和邮箱是必填项：提交时 JavaScript 会先检查这两项，
+                            为空会弹出提示并阻止提交。
+                        </p>
+                    </div>
+
+                    <!-- novalidate：交给自己的 JavaScript 做校验，便于统一提示 -->
+                    <form class="msg-form" id="messageForm" novalidate>
+                        <div class="field">
+                            <label for="username">姓名<span class="required">*</span></label>
+                            <input type="text" id="username" name="username" autocomplete="name" placeholder="怎么称呼你？">
+                            <p class="field-error" id="usernameError">请填写你的姓名。</p>
+                        </div>
+
+                        <div class="field">
+                            <label for="email">邮箱<span class="required">*</span></label>
+                            <input type="email" id="email" name="email" autocomplete="email" placeholder="name@example.com">
+                            <p class="field-error" id="emailError">请填写你的邮箱。</p>
+                        </div>
+
+                        <div class="field">
+                            <label for="message">留言</label>
+                            <textarea id="message" name="message" placeholder="想说的话写在这里……"></textarea>
+                            <p class="field-error" id="messageError">留言内容不能为空。</p>
+                        </div>
+
+                        <div class="form-footer">
+                            <span class="form-hint">带 * 的是必填项</span>
+                            <button class="btn btn-primary" type="submit">提交留言</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================================
+         页脚：联系信息 + 版权符号
+         ============================================================ -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <h2>曹太金 · 作品集</h2>
+                    <p>数字媒体技术专业学生，正在把每一次作业做成可以拿得出手的作品。</p>
+                </div>
+
+                <address class="footer-contact">
+                    <div><span class="label">邮箱</span><a href="mailto:caotaijin@foxmail.com">caotaijin@foxmail.com</a></div>
+                    <div><span class="label">微信</span>ctj_design</div>
+                    <div><span class="label">学号</span>260956030111</div>
+                </address>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 曹太金 保留所有权利</p>
+                <p>Web 前端开发课程综合大作业</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮：固定右下角，页面向下滚动超过 200px 后由 JS 显示 -->
+    <button type="button" id="backToTop" aria-label="返回顶部">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+        </svg>
+    </button>
+
+    <!-- ============================================================
+         页面交互脚本（全部原生 JavaScript，无第三方库）
+         ============================================================ -->
+    <script>
+        (function () {
+            'use strict';
+
+            /* ----------------------------------------------------
+               一、导航高亮：鼠标移入添加 active 类，移出移除
+               ---------------------------------------------------- */
+            var navItems = document.querySelectorAll('.nav-item');
+
+            navItems.forEach(function (item) {
+                // 鼠标移入 / 移出
+                item.addEventListener('mouseenter', function () {
+                    item.classList.add('active');
+                });
+                item.addEventListener('mouseleave', function () {
+                    item.classList.remove('active');
+                });
+
+                // 键盘 Tab 聚焦时同样高亮，保证不用鼠标也能看出当前项
+                item.addEventListener('focus', function () {
+                    item.classList.add('active');
+                });
+                item.addEventListener('blur', function () {
+                    item.classList.remove('active');
+                });
+            });
+
+            /* ----------------------------------------------------
+               二、返回顶部
+               1）监听滚动，scrollY > 200 时显示按钮，否则隐藏
+               2）点击按钮平滑回到页面顶部
+               ---------------------------------------------------- */
+            var backToTopBtn = document.getElementById('backToTop');
+            var SHOW_LIMIT = 200;   // 超过 200px 才显示
+
+            function toggleBackToTop() {
+                if (window.scrollY > SHOW_LIMIT) {
+                    backToTopBtn.classList.add('is-visible');
+                } else {
+                    backToTopBtn.classList.remove('is-visible');
+                }
+            }
+
+            window.addEventListener('scroll', toggleBackToTop, { passive: true });
+            toggleBackToTop();      // 页面刷新后可能停在中间位置，初始化一次状态
+
+            backToTopBtn.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            /* ----------------------------------------------------
+               三、留言表单非空验证
+               姓名、邮箱为空时 alert 提示并阻止提交；
+               补充：邮箱格式不对、留言为空也一并提示
+               ---------------------------------------------------- */
+            var form = document.getElementById('messageForm');
+            var nameInput = document.getElementById('username');
+            var emailInput = document.getElementById('email');
+            var messageInput = document.getElementById('message');
+            var nameError = document.getElementById('usernameError');
+            var emailError = document.getElementById('emailError');
+            var messageError = document.getElementById('messageError');
+
+            // 切换单个字段的错误样式（边框 + 字段下方文字）
+            function markField(input, errorBox, isError) {
+                input.classList.toggle('is-invalid', isError);
+                errorBox.classList.toggle('is-shown', isError);
+            }
+
+            // 输入时清除该字段的错误提示
+            [nameInput, emailInput, messageInput].forEach(function (input, i) {
+                var box = [nameError, emailError, messageError][i];
+                input.addEventListener('input', function () {
+                    markField(input, box, false);
+                });
+            });
+
+            form.addEventListener('submit', function (event) {
+                var nameValue = nameInput.value.trim();
+                var emailValue = emailInput.value.trim();
+                var messageValue = messageInput.value.trim();
+                var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                // 1. 姓名不能为空
+                if (nameValue === '') {
+                    event.preventDefault();
+                    markField(nameInput, nameError, true);
+                    alert('姓名不能为空，请先填写姓名！');
+                    nameInput.focus();
+                    return;
+                }
+
+                // 2. 邮箱不能为空
+                if (emailValue === '') {
+                    event.preventDefault();
+                    markField(emailInput, emailError, true);
+                    alert('邮箱不能为空，请先填写邮箱！');
+                    emailInput.focus();
+                    return;
+                }
+
+                // 3. 邮箱格式检查（补充项）
+                if (!emailPattern.test(emailValue)) {
+                    event.preventDefault();
+                    markField(emailInput, emailError, true);
+                    emailError.textContent = '邮箱格式不正确，例如 name@example.com。';
+                    alert('邮箱格式不正确，请检查后再提交！');
+                    emailInput.focus();
+                    return;
+                }
+
+                // 4. 留言内容检查（补充项）
+                if (messageValue === '') {
+                    event.preventDefault();
+                    markField(messageInput, messageError, true);
+                    alert('留言内容不能为空，写点什么再提交吧！');
+                    messageInput.focus();
+                    return;
+                }
+
+                // 本地静态页面没有后端，这里阻止真实提交并给出反馈
+                event.preventDefault();
+                alert('验证通过！这是一份静态作业页面，留言内容不会真正发送。');
+                form.reset();
+            });
+        })();
+    </script>
+</body>
+</html>
